@@ -2,14 +2,100 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Chatbot Orari Bus – Demo</title>
+<title>Demo Assistente Virtuale Autolinee</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
   :root{
     --primary:#0A4D8C;
     --accent:#26A7E0;
+    --bg:#f4f7fb;
     --card:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:#123;
+  }
+  .page{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  header{
+    padding:16px 24px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+  header .logo{
+    width:42px;height:42px;border-radius:10px;
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:700;font-size:20px;
+  }
+  header h1{margin:0;font-size:20px;color:var(--primary);}
+  header span.sub{font-size:13px;color:#6b7280;}
+
+  main{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .hero-card{
+    max-width:720px;
+    width:100%;
+    background:var(--card);
+    border-radius:18px;
+    padding:28px;
+    box-shadow:0 18px 40px rgba(10,77,140,0.08);
+    display:flex;
+    gap:28px;
+    flex-wrap:wrap;
+  }
+  .hero-text{flex:1 1 260px;}
+  .hero-text h2{margin:0 0 10px;font-size:24px;color:var(--primary);}
+  .hero-text p{margin:0 0 14px;font-size:14px;color:#374151;}
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:4px 10px;border-radius:999px;
+    background:#e0f0ff;font-size:11px;color:#0A4D8C;font-weight:500;
+  }
+  .hero-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .hero-badges span{
+    font-size:11px;background:#eef2ff;color:#4b5563;
+    border-radius:999px;padding:4px 8px;
+  }
+  .hero-side{
+    flex:1 1 260px;
+    border-radius:14px;
+    background:linear-gradient(145deg,#0A4D8C,#26A7E0);
+    color:#fff;
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .hero-side h3{margin:0 0 8px;font-size:16px;}
+  .hero-side p{margin:0 0 10px;font-size:13px;opacity:0.9;}
+  .hero-side small{font-size:11px;opacity:0.85;}
+  .line-chip{
+    display:inline-block;
+    background:rgba(255,255,255,0.12);
+    border-radius:999px;
+    padding:4px 10px;
+    font-size:11px;
+    margin:2px 4px 2px 0;
+  }
+
+  footer{
+    font-size:12px;
+    color:#9ca3af;
+    text-align:center;
+    padding:10px 0 16px;
   }
 
   /* CHAT WIDGET */
@@ -23,12 +109,14 @@
     background:linear-gradient(135deg,var(--primary),var(--accent));
     color:#fff;
     font-size:14px;
+    box-shadow:0 14px 35px rgba(10,77,140,0.35);
     cursor:pointer;
     display:flex;
     align-items:center;
     gap:6px;
     z-index:9999;
   }
+  #chatBtn span{font-size:18px;}
 
   #chatWindow{
     position:fixed;
@@ -39,76 +127,109 @@
     height:520px;
     background:var(--card);
     border-radius:16px;
-    box-shadow:0 20px 50px rgba(0,0,0,0.2);
+    box-shadow:0 20px 50px rgba(15,23,42,0.35);
     display:none;
     flex-direction:column;
     overflow:hidden;
     z-index:9998;
   }
-
   #chatHeader{
     background:linear-gradient(135deg,var(--primary),var(--accent));
     color:#fff;
-    padding:10px;
+    padding:10px 12px;
     display:flex;
-    justify-content:space-between;
     align-items:center;
+    justify-content:space-between;
   }
+  #chatHeader .title{
+    display:flex;align-items:center;gap:8px;
+  }
+  #chatHeader .avatar{
+    width:30px;height:30px;border-radius:999px;
+    background:rgba(255,255,255,0.18);
+    display:flex;align-items:center;justify-content:center;
+  }
+  #chatHeader .name{font-size:14px;font-weight:600;}
+  #chatHeader .status{font-size:11px;opacity:0.9;}
 
   #chatbox{
     flex:1;
+    background:#f7f9fc;
     padding:10px;
     overflow:auto;
     display:flex;
     flex-direction:column;
     gap:8px;
-    background:#f7f9fc;
   }
 
-  .msg-row{display:flex;gap:6px;}
+  .msg-row{
+    display:flex;
+    align-items:flex-end;
+    gap:6px;
+  }
   .msg-row.bot{justify-content:flex-start;}
   .msg-row.user{justify-content:flex-end;}
 
   .msg-avatar{
-    width:26px;height:26px;
+    width:26px;height:26px;border-radius:999px;
     display:flex;align-items:center;justify-content:center;
-    border-radius:50%;
+    font-size:16px;
   }
-  .msg-avatar.bot{background:#fff;border:1px solid #c9dafe;color:#0A4D8C;}
-  .msg-avatar.user{background:#d5eeff;border:1px solid #bfe3ff;}
+  .msg-avatar.bot{background:#ffffff;border:1px solid #d2e3ff;color:#0A4D8C;}
+  .msg-avatar.user{background:#d1eaff;border:1px solid #b8ddff;color:#124057;}
 
   .msg-bubble{
+    max-width:78%;
     padding:8px 10px;
-    border-radius:12px;
+    border-radius:14px;
     font-size:13px;
-    max-width:75%;
+    line-height:1.35;
+    box-shadow:0 1px 1px rgba(15,23,42,0.06);
   }
-  .msg-bubble.bot{background:#eaf1ff;}
-  .msg-bubble.user{background:#d2f2f5;}
+  .msg-bubble.bot{
+    background:#eef4ff;
+    color:#0f172a;
+    border-radius:12px 12px 12px 4px;
+  }
+  .msg-bubble.user{
+    background:#d1ecf1;
+;    color:#0c5460;
+    border-radius:12px 12px 4px 12px;
+  }
+
+  .msg-meta{
+    font-size:10px;
+    color:#9ca3af;
+    margin-top:2px;
+  }
 
   #inputArea{
     padding:8px;
     border-top:1px solid #e5e7eb;
-    background:white;
+    background:#ffffff;
     display:flex;
     flex-direction:column;
     gap:6px;
   }
-
-  #inputRow{display:flex;gap:6px;}
-
+  #inputRow{
+    display:flex;
+    gap:6px;
+  }
   #userInput{
     flex:1;
-    padding:8px;
+    padding:8px 10px;
+    font-size:13px;
     border-radius:8px;
-    border:1px solid #ccc;
+    border:1px solid #d1d5db;
+    outline:none;
   }
   #sendBtn{
-    background:var(--primary);
-    color:white;
     border:none;
     border-radius:8px;
-    padding:0 12px;
+    padding:8px 11px;
+    background:var(--primary);
+    color:#fff;
+    font-size:13px;
     cursor:pointer;
   }
 
@@ -118,33 +239,401 @@
     gap:6px;
   }
   .quick-btn{
-    padding:5px 10px;
     border:none;
     border-radius:999px;
+    padding:6px 10px;
     font-size:11px;
-    background:#e6f1ff;
+    background:#e5f0ff;
     color:#0A4D8C;
     cursor:pointer;
   }
+
+  #poweredBy{
+    font-size:10px;
+    color:#9ca3af;
+    text-align:center;
+    padding:4px 0 6px;
+  }
+
+  .typing{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+  }
+  .typing span{
+    width:4px;height:4px;
+    border-radius:999px;
+    background:#6b7280;
+    display:inline-block;
+    animation:typing 1s infinite ease-in-out;
+  }
+  .typing span:nth-child(2){animation-delay:0.15s;}
+  .typing span:nth-child(3){animation-delay:0.3s;}
+
+  @keyframes typing{
+    0%,80%,100%{transform:translateY(0);opacity:.4;}
+    40%{transform:translateY(-3px);opacity:1;}
+  }
+
+  @media (max-width:600px){
+    .hero-card{padding:20px;}
+    main{padding:16px;}
+  }
 </style>
 </head>
-
 <body>
 
-<!-- BOTTONCINO -->
-<button id="chatBtn">💬 Assistente Orari</button>
+<div class="page">
+  <header>
+    <div class="logo">U</div>
+    <div>
+      <h1>Unidan Solutions</h1>
+      <span class="sub">Demo Assistente Virtuale per Autolinee</span>
+    </div>
+  </header>
 
-<!-- FINESTRA CHAT -->
-<div id="chatWindow">
+  <main>
+    <div class="hero-card">
+      <div class="hero-text">
+        <div class="pill">Demo • Assistente Orari Linee Bus</div>
+        <h2>Risposte immediate su orari, fermate e linee</h2>
+        <p>
+          Questo assistente virtuale è pensato per aziende di autolinee:
+          risponde ai passeggeri 24/7 su orari, tratte, fermate principali e informazioni di viaggio,
+          riducendo telefonate e richieste ripetitive.
+        </p>
+        <p style="font-size:13px;color:#4b5563;">
+          Prova a chiedere, ad esempio:
+          <br><em>“Orari Agrigento Catania”</em>,
+          <em>“prima corsa Caltanissetta Palermo”</em> oppure
+          <em>“la linea Gangi Palermo feriale?”</em>
+        </p>
+        <div class="hero-badges">
+          <span>Orari feriali/festivi</span>
+          <span>Tratte preconfigurate</span>
+          <span>Risposte naturali</span>
+        </div>
+      </div>
+      <div class="hero-side">
+        <div>
+          <h3>Linee demo incluse</h3>
+          <p>Il chatbot è impostato su alcune tratte dimostrative ispirate agli orari regionali siciliani.</p>
+          <div>
+            <div class="line-chip">Gangi – Cefalù – Palermo</div>
+            <div class="line-chip">Agrigento – Caltanissetta – Aeroporto – Catania</div>
+            <div class="line-chip">Licata – Ravanusa – Campobello – Caltanissetta</div>
+            <div class="line-chip">Caltanissetta – Palermo</div>
+            <div class="line-chip">Riesi – Sommatino – Caltanissetta</div>
+          </div>
+        </div>
+        <small>Demo non ufficiale, orari a solo scopo illustrativo.</small>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    © 2025 Unidan Solutions – Demo Assistente Virtuale Autolinee
+  </footer>
+</div>
+
+<!-- CHAT WIDGET BUTTON -->
+<button id="chatBtn">
+  <span>💬</span>
+  <span>Assistente Orari</span>
+</button>
+
+<!-- CHAT WINDOW -->
+<div id="chatWindow" aria-label="Assistente orari linee bus" role="dialog">
   <div id="chatHeader">
-    <strong>Assistente Linee Bus</strong>
-    <button id="closeChat" style="background:none;border:none;font-size:20px;color:white;cursor:pointer;">×</button>
+    <div class="title">
+      <div class="avatar">🧭</div>
+      <div>
+        <div class="name">Assistente Linee Bus</div>
+        <div class="status">Online · Demo</div>
+      </div>
+    </div>
+    <button style="border:none;background:transparent;color:#e5e7eb;font-size:16px;cursor:pointer;" id="closeChat" aria-label="Chiudi chat">×</button>
   </div>
 
-  <div id="chatbox"></div>
+  <div id="chatbox" role="log" aria-relevant="additions"></div>
 
   <div id="inputArea">
-
-    <!-- QUICK BUTTONS -->
     <div class="quick-row" id="quickRow">
-      <button class="quick-btn" data-q="Orari Agrigento Catan
+      <button class="quick-btn" data-q="Orari Agrigento Catania">Orari Agrigento – Catania</button>
+      <button class="quick-btn" data-q="Orari Caltanissetta Palermo mattina">Caltanissetta – Palermo</button>
+      <button class="quick-btn" data-q="Linea Gangi Palermo feriale">Gangi – Palermo feriale</button>
+    </div>
+    <div id="inputRow">
+      <input id="userInput" type="text" placeholder="Scrivi qui la tua domanda sugli orari..." />
+      <button id="sendBtn">Invia</button>
+    </div>
+    <div id="poweredBy">Powered by Unidan Solutions · Demo</div>
+  </div>
+</div>
+
+
+<!-- ███████████████████████████████ -->
+<!--  JAVASCRIPT COMPLETO E FUNZIONANTE -->
+<!-- ███████████████████████████████ -->
+
+<script>
+
+  /* --- DATI ORARI DEMO --- */
+  const linesData = {
+    "agrigento-caltanissetta-catania": {
+      label: "Agrigento – Caltanissetta – Aeroporto – Catania",
+      stops: ["Agrigento", "Canicattì", "Caltanissetta", "Aeroporto Catania", "Catania"],
+      feriali: [
+        { from: "Agrigento", to: "Catania", dep: "06:00", arr: "09:10" },
+        { from: "Agrigento", to: "Catania", dep: "09:30", arr: "12:40" },
+        { from: "Agrigento", to: "Catania", dep: "15:00", arr: "18:10" }
+      ],
+      festivi: [
+        { from: "Agrigento", to: "Catania", dep: "07:00", arr: "10:15" },
+        { from: "Agrigento", to: "Catania", dep: "17:00", arr: "20:15" }
+      ]
+    },
+    "caltanissetta-palermo": {
+      label: "Caltanissetta – Palermo (via A19)",
+      stops: ["Caltanissetta", "Enna", "Termini Imerese", "Palermo"],
+      feriali: [
+        { from: "Caltanissetta", to: "Palermo", dep: "05:45", arr: "07:45" },
+        { from: "Caltanissetta", to: "Palermo", dep: "08:15", arr: "10:15" },
+        { from: "Caltanissetta", to: "Palermo", dep: "14:30", arr: "16:30" }
+      ],
+      festivi: [
+        { from: "Caltanissetta", to: "Palermo", dep: "09:00", arr: "11:00" },
+        { from: "Caltanissetta", to: "Palermo", dep: "18:00", arr: "20:00" }
+      ]
+    },
+    "gangi-cefalu-palermo": {
+      label: "Gangi – Cefalù – Palermo",
+      stops: ["Gangi", "Petralia", "Cefalù", "Palermo"],
+      feriali: [
+        { from: "Gangi", to: "Palermo", dep: "06:10", arr: "09:00" },
+        { from: "Gangi", to: "Palermo", dep: "13:30", arr: "16:15" }
+      ],
+      festivi: [
+        { from: "Gangi", to: "Palermo", dep: "07:00", arr: "09:45" }
+      ]
+    },
+    "licata-campobello-caltanissetta": {
+      label: "Licata – Ravanusa – Campobello – Caltanissetta",
+      stops: ["Licata", "Ravanusa", "Campobello di Licata", "Caltanissetta"],
+      feriali: [
+        { from: "Licata", to: "Caltanissetta", dep: "06:20", arr: "08:10" },
+        { from: "Licata", to: "Caltanissetta", dep: "13:00", arr: "14:50" }
+      ],
+      festivi: [
+        { from: "Licata", to: "Caltanissetta", dep: "08:00", arr: "09:50" }
+      ]
+    },
+    "riesi-sommatino-caltanissetta": {
+      label: "Riesi – Sommatino – Caltanissetta",
+      stops: ["Riesi", "Sommatino", "Caltanissetta"],
+      feriali: [
+        { from: "Riesi", to: "Caltanissetta", dep: "07:00", arr: "07:45" },
+        { from: "Riesi", to: "Caltanissetta", dep: "13:15", arr: "14:00" }
+      ],
+      festivi: [
+        { from: "Riesi", to: "Caltanissetta", dep: "09:00", arr: "09:45" }
+      ]
+    }
+  };
+
+  /* --- ELEMENTI --- */
+  const chatBtn   = document.getElementById('chatBtn');
+  const chatWin   = document.getElementById('chatWindow');
+  const chatbox   = document.getElementById('chatbox');
+  const userInput = document.getElementById('userInput');
+  const sendBtn   = document.getElementById('sendBtn');
+  const closeBtn  = document.getElementById('closeChat');
+  const quickRow  = document.getElementById('quickRow');
+
+  let greeted = false;
+  let typingTimeout = null;
+
+  function openChat(){
+    chatWin.style.display = 'flex';
+    if(!greeted){
+      setTimeout(()=>{
+        botMessage("👋 Ciao! Sono l'assistente orari (demo). "+
+                   "Chiedimi una tratta, es: <em>“Agrigento Catania”</em>.");
+      }, 300);
+      greeted = true;
+    }
+  }
+  function closeChat(){
+    chatWin.style.display = 'none';
+  }
+
+  chatBtn.addEventListener('click', openChat);
+  closeBtn.addEventListener('click', closeChat);
+
+
+  /* --- MESSAGGI --- */
+  function addMessageRow(sender, html){
+    const row = document.createElement("div");
+    row.className = "msg-row " + sender;
+
+    const avatar = document.createElement("div");
+    avatar.className = "msg-avatar " + sender;
+    avatar.textContent = sender === "bot" ? "🧭" : "🧑";
+
+    const bubble = document.createElement("div");
+    bubble.className = "msg-bubble " + sender;
+    bubble.innerHTML = html;
+
+    if(sender === "bot"){
+      row.appendChild(avatar);
+      row.appendChild(bubble);
+    } else {
+      row.appendChild(bubble);
+      row.appendChild(avatar);
+    }
+
+    chatbox.appendChild(row);
+    chatbox.scrollTop = chatbox.scrollHeight;
+  }
+
+  function userMessage(t){
+    addMessageRow("user", escapeHtml(t));
+  }
+  function botMessage(t){
+    addMessageRow("bot", t);
+  }
+
+  function escapeHtml(str){
+    return str.replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[m]));
+  }
+
+
+  /* --- RICONOSCIMENTO TRATTE --- */
+  function detectLine(text){
+    let t = text.toLowerCase().replace(/-/g," ");
+
+    if(t.includes("agrigento") && t.includes("catania"))
+      return "agrigento-caltanissetta-catania";
+
+    if(t.includes("caltanissetta") && t.includes("palermo"))
+      return "caltanissetta-palermo";
+
+    if(t.includes("gangi") || t.includes("cefalu"))
+      return "gangi-cefalu-palermo";
+
+    if(t.includes("licata") || t.includes("ravanusa") || t.includes("campobello"))
+      return "licata-campobello-caltanissetta";
+
+    if(t.includes("riesi") || t.includes("sommatino"))
+      return "riesi-sommatino-caltanissetta";
+
+    return null;
+  }
+
+  function detectDayType(text){
+    text = text.toLowerCase();
+    if(text.includes("festiv")) return "festivi";
+    if(text.includes("ferial")) return "feriali";
+    return "both";
+  }
+
+  function detectTimeHint(text){
+    const t = text.toLowerCase();
+    if(t.includes("mattina")) return "morning";
+    if(t.includes("pomeriggio")) return "afternoon";
+    if(t.includes("sera")) return "evening";
+    if(t.includes("prima corsa") || t.includes("prima partenza")) return "first";
+    return null;
+  }
+
+  function filterByTimeHint(trips, hint){
+    if(!hint) return trips;
+    if(hint === "first") return trips.slice(0,1);
+
+    return trips.filter(trip=>{
+      const h = parseInt(trip.dep.split(":")[0]);
+      if(hint === "morning") return h>=5 && h<12;
+      if(hint === "afternoon") return h>=12 && h<18;
+      if(hint === "evening") return h>=18;
+      return true;
+    });
+  }
+
+  function formatTrips(lineObj, day, trips){
+    if(!trips.length)
+      return "Nessuna corsa trovata.";
+
+    let h = `<strong>${lineObj.label}</strong><br><small>Orari ${day}</small><br><br>`;
+    trips.forEach(tr=>{
+      h += `🕒 <strong>${tr.dep}</strong> da <strong>${tr.from}</strong> → ${tr.to} (<strong>${tr.arr}</strong>)<br>`;
+    });
+    return h + "<br><small>Orari dimostrativi.</small>";
+  }
+
+
+  /* --- RISPOSTA --- */
+  function respond(text){
+    const lower = text.toLowerCase();
+
+    if(/\b(ciao|salve|buongiorno|buonasera|hey|ehi)\b/.test(lower)){
+      botMessage("Ciao! 👋 Scrivi una tratta, ad esempio <em>Agrigento Catania</em>.");
+      return;
+    }
+
+    if(lower.includes("bagag")){ botMessage("1 bagaglio in stiva + 1 a mano (demo)."); return; }
+
+    if(lower.includes("animal") || lower.includes("cane") || lower.includes("gatto")){
+      botMessage("Animali ammessi con museruola o trasportino (demo).");
+      return;
+    }
+
+    const key = detectLine(lower);
+    if(!key){
+      botMessage("Non ho trovato questa linea 😕. Prova <em>Agrigento Catania</em>.");
+      return;
+    }
+
+    const day = detectDayType(lower);
+    const hint = detectTimeHint(lower);
+    const line = linesData[key];
+
+    let trips = (day === "festivi") ? line.festivi : line.feriali;
+    let label = (day === "festivi") ? "festivi" : "feriali";
+
+    trips = filterByTimeHint(trips, hint);
+
+    botMessage(formatTrips(line, label, trips));
+  }
+
+
+  /* --- INVIO --- */
+  function handleUserInput(t){
+    t = t.trim();
+    if(!t) return;
+    userMessage(t);
+    userInput.value = "";
+    setTimeout(()=>respond(t), 350);
+  }
+
+  sendBtn.addEventListener("click", ()=>handleUserInput(userInput.value));
+  userInput.addEventListener("keydown", e=>{
+    if(e.key === "Enter"){
+      e.preventDefault();
+      handleUserInput(userInput.value);
+    }
+  });
+
+  /* --- SUGGERIMENTI (FIX COMPLETO) --- */
+  quickRow.addEventListener("click", e=>{
+    const btn = e.target.closest(".quick-btn");
+    if(!btn) return;
+    const q = btn.dataset.q;
+    handleUserInput(q);
+  });
+
+</script>
+
+</body>
+</html>
